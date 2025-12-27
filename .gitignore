@@ -1,6 +1,4 @@
-# =========================
 # Python
-# =========================
 __pycache__/
 *.py[cod]
 *.pyo
@@ -9,44 +7,30 @@ __pycache__/
 dist/
 build/
 
-# =========================
 # Virtual Environment
-# =========================
 venv/
 env/
 .venv/
 
-# =========================
 # Environment Variables
-# =========================
 .env
 
-# =========================
 # Jupyter Notebook
-# =========================
-.ipynb_checkpoints/
+.ipynb_check
 
-# =========================
 # Logs
-# =========================
 *.log
 
 # OS Files
 .DS_Store
 Thumbs.db
 
-# =========================
 # IDE / Editor
-# =========================
 .vscode/
 .idea/
 
-# =========================
 # MySQL
-# =========================
 *.sql
 
-# =========================
-# Node / Frontend (if any later)
-# =========================
+# Node / Frontend 
 node_modules/
