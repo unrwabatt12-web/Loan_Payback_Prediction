@@ -1,0 +1,2338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI - Loan PayBack Predictions</title>
+   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    /* ===== CSS VARIABLES & RESET ===== */
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #1e4e64 0%, #111316 100%);
+        --success-gradient: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        --warning-gradient: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+        --danger-gradient: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        --info-gradient: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        --dark: #1a202c;
+        --light: #f7fafc;
+        --gray: #718096;
+        --light-gray: #e2e8f0;
+        --border-radius: 16px;
+        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        --shadow-hover: 0 25px 75px rgba(0, 0, 0, 0.12);
+    }
+    
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: 'Inter', sans-serif;
+        background: var(--primary-gradient);
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden;
+        color: var(--dark);
+    }
+
+    /* ===== ANIMATED BACKGROUND ===== */
+    .particles {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .particle {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+        animation: float 20s infinite ease-in-out;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0) translateX(0) scale(1); opacity: 0.3; }
+        25% { transform: translateY(-100px) translateX(50px) scale(1.1); opacity: 0.6; }
+        50% { transform: translateY(-200px) translateX(-30px) scale(0.9); opacity: 0.4; }
+        75% { transform: translateY(-100px) translateX(-80px) scale(1.05); opacity: 0.5; }
+    }
+
+    /* ===== UTILITY CLASSES ===== */
+    .hidden { display: none !important; }
+    .loading { opacity: 0.7; pointer-events: none; }
+    .loading::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+    /* ===== AUTHENTICATION PAGES ===== */
+    .auth-main-container {
+        position: relative;
+        z-index: 10;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
+    .auth-foreground {
+        position: relative;
+        z-index: 11;
+        width: 100%;
+        max-width: 400px;
+        animation: slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slide-up {
+        from { opacity: 0; transform: translateY(50px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .auth-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(40px);
+        -webkit-backdrop-filter: blur(40px);
+        padding: 3rem 2.5rem;
+        border-radius: 32px;
+        box-shadow: var(--shadow), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .auth-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: var(--primary-gradient);
+    }
+
+    /* Logo & Typography */
+    .logo {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .logo-icon {
+        font-size: 3.5rem;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+        animation: pulse 2s ease-in-out infinite;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    h1 {
+        color: var(--dark);
+        text-align: center;
+        margin-bottom: 0.75rem;
+        font-size: 2.2rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+    }
+
+    .auth-subtitle {
+        text-align: center;
+        color: var(--gray);
+        margin-bottom: 2rem;
+        font-size: 1rem;
+        font-weight: 500;
+        line-height: 1.5;
+    }
+
+    /* Form Elements */
+    .form-group {
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--dark);
+        font-size: 0.9rem;
+        letter-spacing: 0.3px;
+    }
+
+    .input-wrapper {
+        position: relative;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray);
+        z-index: 2;
+    }
+
+    .form-input,
+    .form-select {
+        width: 100%;
+        padding: 1rem 1rem 1rem 3rem;
+        border: 2px solid var(--light-gray);
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        transition: var(--transition);
+        background: white;
+        font-family: inherit;
+        font-weight: 500;
+        color: var(--dark);
+    }
+
+    .form-input:focus,
+    .form-select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--gray);
+        cursor: pointer;
+        padding: 0.25rem;
+        z-index: 3;
+    }
+
+    /* Buttons */
+    .btn {
+        width: 100%;
+        background: var(--primary-gradient);
+        color: white;
+        padding: 1rem;
+        border: none;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 700;
+        transition: var(--transition);
+        margin-top: 0.5rem;
+        position: relative;
+        overflow: hidden;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+        left: 100%;
+    }
+
+    .btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn:active {
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: var(--info-gradient);
+    }
+
+    .btn-success {
+        background: var(--success-gradient);
+    }
+
+    .btn-danger {
+        background: var(--danger-gradient);
+    }
+
+    .btn-warning {
+        background: var(--warning-gradient);
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 2px solid #667eea;
+        color: #667eea;
+    }
+
+    .btn-outline:hover {
+        background: #667eea;
+        color: white;
+    }
+
+    /* Links */
+    .link-group {
+        text-align: center;
+        margin-top: 1.75rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--light-gray);
+    }
+
+    .link {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: var(--transition);
+        position: relative;
+        display: inline-block;
+        margin: 0 0.5rem;
+    }
+
+    .link::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -2px;
+        left: 50%;
+        background: #667eea;
+        transition: var(--transition);
+        transform: translateX(-50%);
+    }
+
+    .link:hover::after {
+        width: 100%;
+    }
+
+    .link:hover {
+        color: #764ba2;
+    }
+
+    /* ===== DASHBOARD ===== */
+    #dashboardPage {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background: var(--secondary-gradient);
+        overflow-y: auto;
+        z-index: 1000;
+    }
+
+    .dashboard-container {
+        min-height: 100vh;
+        padding: 1.5rem;
+    }
+
+    .dashboard-header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(30px);
+        padding: 1.5rem 2rem;
+        border-radius: 24px;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .dashboard-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    /* User Info */
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .user-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: var(--primary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .logout-btn {
+        width: auto;
+        padding: 0.75rem 1.5rem;
+        font-size: 0.9rem;
+        border-radius: 12px;
+        background: var(--primary-gradient);
+    }
+
+    /* Dashboard Content */
+    .dashboard-content {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(30px);
+        border-radius: 24px;
+        padding: 2.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+
+    /* Tabs */
+    .tabs {
+        display: flex;
+        margin-bottom: 2.5rem;
+        gap: 1rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 0.75rem;
+        border-radius: 18px;
+        flex-wrap: wrap;
+    }
+
+    .tab {
+        flex: 1;
+        padding: 1rem 1.5rem;
+        cursor: pointer;
+        background: white;
+        border: none;
+        border-radius: 14px;
+        font-weight: 700;
+        color: #4a5568;
+        transition: var(--transition);
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        min-width: 180px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .tab:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+    }
+
+    .tab.active {
+        background: var(--primary-gradient);
+        color: white;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .tab-content {
+        display: none;
+        animation: fade-in 0.5s ease;
+    }
+
+    @keyframes fade-in {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    /* Form Layout */
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .help-text {
+        font-size: 0.8rem;
+        color: var(--gray);
+        margin-top: 0.25rem;
+        font-weight: 500;
+        display: block;
+    }
+
+    /* File Upload */
+    .file-upload {
+        border: 3px dashed rgba(102, 126, 234, 0.5);
+        border-radius: 20px;
+        padding: 4rem 2rem;
+        text-align: center;
+        margin: 2rem 0;
+        background: linear-gradient(135deg, rgba(247, 250, 252, 0.95) 0%, rgba(233, 243, 255, 0.95) 100%);
+        cursor: pointer;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .file-upload::before {
+        content: '📁';
+        position: absolute;
+        font-size: 6rem;
+        opacity: 0.05;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .file-upload:hover {
+        border-color: #667eea;
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.15);
+    }
+
+    /* Results */
+    .result {
+        margin-top: 2.5rem;
+        padding: 2rem;
+        border-radius: 20px;
+        display: none;
+        animation: slide-up 0.6s ease;
+    }
+
+    .result.success {
+        background: linear-gradient(135deg, rgba(198, 246, 213, 0.95) 0%, rgba(240, 253, 244, 0.95) 100%);
+        border: 2px solid rgba(104, 211, 145, 0.4);
+    }
+
+    .result.error {
+        background: linear-gradient(135deg, rgba(254, 215, 215, 0.95) 0%, rgba(254, 226, 226, 0.95) 100%);
+        border: 2px solid rgba(252, 129, 129, 0.4);
+    }
+
+    .result h3 {
+        margin-bottom: 1.25rem;
+        font-weight: 800;
+        color: #2d3748;
+    }
+
+    /* Prediction Cards */
+    .prediction-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid #667eea;
+    }
+
+    .prediction-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .prediction-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+
+    .status-approved {
+        background: rgba(72, 187, 120, 0.2);
+        color: #2f855a;
+    }
+
+    .status-rejected {
+        background: rgba(245, 101, 101, 0.2);
+        color: #c53030;
+    }
+
+    /* Tables */
+    .table-container {
+        overflow-x: auto;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        margin-top: 1.5rem;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        min-width: 800px;
+    }
+
+    table th {
+        background: var(--primary-gradient);
+        padding: 1rem;
+        font-weight: 700;
+        color: white;
+        text-align: left;
+        border: none;
+    }
+
+    table td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--light-gray);
+        vertical-align: middle;
+    }
+
+    table tr:hover {
+        background: rgba(102, 126, 234, 0.05);
+    }
+
+    /* Template Buttons */
+    .template-buttons {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+
+    .template-btn {
+        padding: 0.75rem 1.25rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border: none;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .template-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    /* ===== RESPONSIVE DESIGN ===== */
+    @media (max-width: 768px) {
+        .auth-container {
+            padding: 2rem 1.5rem;
+        }
+
+        .dashboard-header {
+            flex-direction: column;
+            text-align: center;
+            padding: 1.5rem;
+        }
+
+        .tabs {
+            flex-direction: column;
+        }
+
+        .tab {
+            min-width: 100%;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .file-upload {
+            padding: 3rem 1.5rem;
+        }
+
+        .user-info {
+            justify-content: center;
+        }
+
+        .dashboard-content {
+            padding: 1.5rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        h1 {
+            font-size: 1.8rem;
+        }
+        
+        .auth-container {
+            padding: 1.5rem 1rem;
+        }
+        
+        .btn, .form-input, .form-select {
+            padding-left: 2.5rem;
+        }
+        
+        .input-icon {
+            left: 0.75rem;
+        }
+    }
+
+    /* History Views */
+.history-view {
+    animation: fade-in 0.5s ease;
+}
+
+.history-view.hidden {
+    display: none;
+}
+
+/* Responsive table improvements */
+@media (max-width: 1200px) {
+    .table-container {
+        font-size: 0.9rem;
+    }
+    
+    .table-container table th,
+    .table-container table td {
+        padding: 0.6rem 0.8rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .table-container {
+        font-size: 0.85rem;
+    }
+}
+
+
+</style>
+</head>
+<body>
+    <!-- Animated background particles -->
+    <div class="particles">
+        <div class="particle" style="width: 80px; height: 80px; top: 10%; left: 20%; animation-delay: 0s;"></div>
+        <div class="particle" style="width: 60px; height: 60px; top: 60%; left: 80%; animation-delay: 2s;"></div>
+        <div class="particle" style="width: 100px; height: 100px; top: 80%; left: 10%; animation-delay: 4s;"></div>
+        <div class="particle" style="width: 70px; height: 70px; top: 30%; left: 70%; animation-delay: 1s;"></div>
+        <div class="particle" style="width: 90px; height: 90px; top: 50%; left: 40%; animation-delay: 3s;"></div>
+    </div>
+
+    <!-- Auth Pages -->
+    <div id="authPages" class="auth-main-container">
+        <!-- Login Page -->
+        <div id="loginPage" class="auth-foreground">
+            <div class="auth-container">
+                <div class="logo">
+                    <h1> PayBack Prediction </h1>
+                </div>
+                <div class="auth-subtitle">AI-powered loan prediction system with intelligent risk assessment</div>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginUsername" class="form-label">Username or Email</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user input-icon"></i>
+                            <input type="text" id="loginUsername" class="form-input" required placeholder="Enter your username or email">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginPassword" class="form-label">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="loginPassword" class="form-input" required placeholder="Enter your password">
+                            <button type="button" class="password-toggle" onclick="togglePassword('loginPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </button>
+                </form>
+                
+                <div class="link-group">
+                    <div class="auth-subtitle">if you don't have an account?
+                     <a class="link" onclick="showPage('register')">Click here!</a></div>
+                    <a class="link" onclick="showPage('forgot')">Forgot password?</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Register Page -->
+        <div id="registerPage" class="auth-foreground hidden">
+            <div class="auth-container">
+                <div class="logo">
+                    <div class="logo-icon">🧑</div>
+                    <h1>Create Account</h1>
+                </div>
+                <div class="auth-subtitle">Join the future of intelligent lending decisions</div>
+                
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="regFullName" class="form-label">Full Name</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user input-icon"></i>
+                            <input type="text" id="regFullName" class="form-input" placeholder="John Dalton">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="regEmail" class="form-label">Email Address</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="regEmail" class="form-input" required placeholder="johnd@example.com">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="regUsername" class="form-label">Username</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-at input-icon"></i>
+                            <input type="text" id="regUsername" class="form-input" required placeholder="Enter username">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="regPassword" class="form-label">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="regPassword" class="form-input" required placeholder="Minimum 6 characters">
+                            <button type="button" class="password-toggle" onclick="togglePassword('regPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="regConfirmPassword" class="form-label">Confirm Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="regConfirmPassword" class="form-input" required placeholder="Re-enter password">
+                            <button type="button" class="password-toggle" onclick="togglePassword('regConfirmPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </button>
+                </form>
+                
+                <div class="link-group">
+                    <a class="link" onclick="showPage('login')">Already have an account?</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Forgot Password Page -->
+        <div id="forgotPage" class="auth-foreground hidden">
+            <div class="auth-container">
+                <div class="logo">
+                    <div class="logo-icon">🔑</div>
+                    <h1>Reset Password</h1>
+                </div>
+                <div class="auth-subtitle">Enter your email to receive reset instructions</div>
+                
+                <form id="forgotForm">
+                    <div class="form-group">
+                        <label for="forgotEmail" class="form-label">Email Address</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="forgotEmail" class="form-input" required placeholder="johnd@example.com">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">
+                        <i class="fas fa-paper-plane"></i> Send Reset Link
+                    </button>
+                </form>
+                
+                <div class="link-group">
+                    <a class="link" onclick="showPage('login')">Back to login</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reset Password Page -->
+        <div id="resetPage" class="auth-foreground hidden">
+            <div class="auth-container">
+                <div class="logo">
+                    <div class="logo-icon">🔐</div>
+                    <h1>New Password</h1>
+                </div>
+                <div class="auth-subtitle">Choose a strong, secure password</div>
+                
+                <form id="resetForm">
+                    <div class="form-group">
+                        <label for="resetToken" class="form-label">Reset Token</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-key input-icon"></i>
+                            <input type="text" id="resetToken" class="form-input" required placeholder="Enter token from email">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="resetPassword" class="form-label">New Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="resetPassword" class="form-input" required placeholder="Minimum 6 characters">
+                            <button type="button" class="password-toggle" onclick="togglePassword('resetPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="resetConfirmPassword" class="form-label">Confirm Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input type="password" id="resetConfirmPassword" class="form-input" required placeholder="Re-enter password">
+                            <button type="button" class="password-toggle" onclick="togglePassword('resetConfirmPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">
+                        <i class="fas fa-sync-alt"></i> Reset Password
+                    </button>
+                </form>
+                
+                <div class="link-group">
+                    <a class="link" onclick="showPage('login')">Back to login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboardPage" class="hidden">
+        <div class="dashboard-container">
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">
+                    <i class="fas fa-chart-line"></i> Loan Payback Dashboard
+                </h1>
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">U</div>
+                    <span id="userDisplay" style="font-weight: 600; color: #26344d;"></span>
+                    <button class="logout-btn btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </div>
+
+            <div class="dashboard-content">
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('single')">
+                        <i class="fas fa-user"></i> Single Prediction
+                    </div>
+                    <div class="tab" onclick="switchTab('batch')">
+                        <i class="fas fa-users"></i> Batch Prediction
+                    </div>
+                    <div class="tab" onclick="switchTab('history')">
+                        <i class="fas fa-history"></i> Prediction History
+                    </div>
+                </div>
+                
+                <!-- Single Prediction Tab -->
+                <div id="single-tab" class="tab-content active">
+                    <h2>Individual Loan Application</h2>
+                    <form id="singleForm">
+                        <div class="form-row">
+                            <div>
+                                <div class="form-group">
+                                    <label for="name" class="form-label">Full Name</label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-user input-icon"></i>
+                                        <input type="text" id="name" class="form-input" required placeholder="John Dalton">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="credit_score" class="form-label">Credit Score <span class="help-text">350-850</span></label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-chart-bar input-icon"></i>
+                                        <input type="number" id="credit_score" class="form-input" required min="300" max="850" placeholder="350">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="annual_income" class="form-label">Annual Income (RWF)</label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-money-bill-wave input-icon"></i>
+                                        <input type="number" id="annual_income" class="form-input" required min="0" placeholder="3 000 000">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="loan_amount" class="form-label">Loan Amount (RWF)</label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-hand-holding-usd input-icon"></i>
+                                        <input type="number" id="loan_amount" class="form-input" required min="1000" placeholder="1 000 000">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="interest_rate" class="form-label">Interest Rate (%) <span class="help-text">0-15%</span></label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-percentage input-icon"></i>
+                                        <input type="number" id="interest_rate" class="form-input" required min="0" max="15" step="0.1" placeholder="3.5">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="debt_to_income_ratio" class="form-label">Debt-to-Income Ratio <span class="help-text">0.00 - 1.00</span></label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-balance-scale input-icon"></i>
+                                        <input type="number" id="debt_to_income_ratio" class="form-input" required min="0" max="1" step="0.01" placeholder="0.28">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="form-group">
+                                    <label for="gender" class="form-label">Gender</label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-venus-mars input-icon"></i>
+                                        <select id="gender" class="form-select" required>
+                                            <option value="">Select gender</option>
+                                            <option value="Male">Male</option>
+                                            <option value="Female">Female</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="marital_status" class="form-label">Marital Status</label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-heart input-icon"></i>
+                                        <select id="marital_status" class="form-select" required>
+                                            <option value="">Select status</option>
+                                            <option value="Single">Single</option>
+                                            <option value="Married">Married</option>
+                                            <option value="Divorced">Divorced</option>
+                                            <option value="Widowed">Widowed</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="education_level" class="form-label">Education Level</label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-graduation-cap input-icon"></i>
+                                        <select id="education_level" class="form-select" required>
+                                            <option value="">Select level</option>
+                                            <option value="High School">High School</option>
+                                            <option value="Bachelor's">Bachelor's</option>
+                                            <option value="Master's">Master's</option>
+                                            <option value="PhD">PhD</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="employment_status" class="form-label">Employment Status</label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-briefcase input-icon"></i>
+                                        <select id="employment_status" class="form-select" required>
+                                            <option value="">Select status</option>
+                                            <option value="Employed">Employed</option>
+                                            <option value="Self-employed">Self-employed</option>
+                                            <option value="Unemployed">Unemployed</option>
+                                            <option value="Student">Student</option>
+                                            <option value="Retired">Retired</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="loan_purpose" class="form-label">Loan Purpose</label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-bullseye input-icon"></i>
+                                        <select id="loan_purpose" class="form-select" required>
+                                            <option value="">Select purpose</option>
+                                            <option value="Debt consolidation">Debt Consolidation</option>
+                                            <option value="Car">Car Purchase</option>
+                                            <option value="Home">Home Purchase</option>
+                                            <option value="Education">Education</option>
+                                            <option value="Business">Business</option>
+                                            <option value="Medical">Medical</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="grade_subgrade" class="form-label">Credit Grade/Subgrade</label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-star input-icon"></i>
+                                        <select id="grade_subgrade" class="form-select" required>
+                                            <option value="">Select grade</option>
+                                            <option value="A1">A1 (Excellent)</option>
+                                            <option value="A2">A2 (Very Good)</option>
+                                            <option value="B1">B1 (Good)</option>
+                                            <option value="B2">B2 (Fair)</option>
+                                            <option value="C1">C1 (Average)</option>
+                                            <option value="C2">C2 (Below Average)</option>
+                                            <option value="C3">C3 (Poor)</option>
+                                            <option value="D1">D1 (Very Poor)</option>
+                                            <option value="D2">D2 (High Risk)</option>
+                                            <option value="F1">F1 (Highest Risk)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn">
+                            <i class="fas fa-brain"></i> Get Prediction
+                        </button>
+                    </form>
+                    
+                    <div id="singleResult" class="result"></div>
+                </div>
+                
+                <!-- Batch Prediction Tab -->
+                <div id="batch-tab" class="tab-content">
+                    <h2>Batch Prediction</h2>
+                     <h3>Basic Template's: </h3>
+                    
+                    <div class="template-buttons">
+
+                        <button onclick="downloadTemplate1()" class="template-btn" style="background: var(--success-gradient); color: white;">
+                            <i class="fas fa-users"></i> Mixed Results
+                        </button>
+                        <button onclick="downloadTemplate2()" class="template-btn" style="background: var(--danger-gradient); color: white;">
+                            <i class="fas fa-exclamation-triangle"></i> High-Risk
+                        </button>
+                        <button onclick="downloadTemplate3()" class="template-btn" style="background: var(--info-gradient); color: white;">
+                            <i class="fas fa-shield-alt"></i> Low-Risk
+                        </button>
+                        <button onclick="downloadTemplate4()" class="template-btn" style="background: var(--warning-gradient); color: white;">
+                            <i class="fas fa-briefcase"></i> Business Owners
+                        </button>
+                        <button onclick="downloadTemplate5()" class="template-btn" style="background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%); color: white;">
+                            <i class="fas fa-home"></i> Real Estate
+                        </button>
+                    </div>
+                    
+                    <div class="file-upload" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                        <input type="file" id="fileInput" accept=".csv" onchange="handleFileSelect(event)" style="display:none;">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #667eea; margin-bottom: 1rem;"></i>
+                        <p style="font-size: 1.25rem; color: #2d3748; font-weight: 700; margin-bottom: 0.5rem;">Drop CSV file here</p>
+                        <p style="font-size: 1rem; color: #718096; margin-bottom: 0.5rem;">or click to browse</p>
+                        <p id="fileName" style="margin-top: 1rem; color: #667eea; font-weight: 600; font-size: 0.9rem;">No file selected</p>
+                    </div>
+                    
+                    <button onclick="uploadFile()" id="uploadBtn" class="btn" disabled>
+                        <i class="fas fa-upload"></i> Process Batch Prediction
+                    </button>
+                    
+                    <div id="batchResult" class="result"></div>
+                </div>
+                
+                <!-- Prediction History Tab -->
+                <div id="history-tab" class="tab-content">
+                    <h2>Prediction History</h2>
+                    <div id="historyContent" style="text-align: center; padding: 3rem;">
+                        <i class="fas fa-history" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+                        <p style="color: #718096; font-size: 1.1rem;">Your prediction history will appear here</p>
+                        <p class="help-text">This feature tracks your previous loan predictions</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+        const API_URL = 'http://localhost:5000';  // Flask backend URL
+        let authToken = localStorage.getItem('authToken');
+        let currentUser = null;
+        let selectedFile = null;
+
+        // Initialize
+        if (authToken) {
+            checkAuth();
+        } else {
+            showPage('login');
+        }
+
+        // Toast notification function
+        function alert(title, icon = 'success', timer = 3000) {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'bottom-end',
+                showConfirmButton: false,
+                timer: timer,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            });
+            
+            Toast.fire({
+                icon: icon,
+                title: title,
+                background: 'rgba(255, 255, 255, 0.98)',
+                backdrop: 'transparent'
+            });
+        }
+
+        // ==================== PASSWORD TOGGLE ====================
+    function togglePassword(inputId) {
+        const input = document.getElementById(inputId);
+        const toggle = input.nextElementSibling.querySelector('i');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            toggle.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            input.type = 'password';
+            toggle.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    }
+
+        // Page navigation
+        function showPage(page) {
+            console.log('Showing page:', page);
+            
+            // Hide all auth pages
+            document.querySelectorAll('.auth-foreground').forEach(el => {
+                el.classList.add('hidden');
+            });
+            
+            // Show the selected page top-up notification
+            if (page === 'login') {
+                document.getElementById('loginPage').classList.remove('hidden');
+                alert('Welcome to App', 'info', 2000);
+            } else if (page === 'register') {
+                document.getElementById('registerPage').classList.remove('hidden');
+                alert('Create your account', 'info', 2000);
+            } else if (page === 'forgot') {
+                document.getElementById('forgotPage').classList.remove('hidden');
+                alert('Password recovery', 'info', 2000);
+            } else if (page === 'reset') {
+                document.getElementById('resetPage').classList.remove('hidden');
+                alert('Set new password', 'info', 2000);
+            } else if (page === 'dashboard') {
+                console.log('Switching to dashboard...');
+                document.getElementById('authPages').classList.add('hidden');
+                document.getElementById('dashboardPage').classList.remove('hidden');
+                alert('Welcome to dashboard!', 'success', 2000);
+            }
+        }
+
+    // Check authentication - UPDATED VERSION
+    async function checkAuth() {
+    console.log('Checking authentication...');
+    
+    if (!authToken) {
+        console.log('No auth token found');
+        showPage('login');
+        return;
+    }
+    
+    try {
+        console.log('Calling /me endpoint with token:', authToken.substring(0, 20) + '...');
+        
+        const response = await fetch(`${API_URL}/me`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+        
+        console.log('Auth response status:', response.status);
+        
+        if (response.ok) {
+            const userData = await response.json();
+            console.log('User authenticated:', userData);
+            
+            currentUser = userData;
+            
+            // Update user display
+            const displayName = currentUser.full_name || currentUser.username || 'User';
+            document.getElementById('userDisplay').textContent = displayName;
+            
+            // Set user avatar initial
+            const initial = displayName.charAt(0).toUpperCase();
+            document.getElementById('userAvatar').textContent = initial;
+            
+            // Show dashboard
+            showPage('dashboard');
+            alert('Welcome back!', 'success', 2000);
+            
+        } else {
+            console.log('Auth failed, status:', response.status);
+            const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+            console.log('Error details:', errorData);
+            
+            localStorage.removeItem('authToken');
+            authToken = null;
+            showPage('login');
+            alert('Session expired, please login', 'warning');
+        }
+    } catch (error) {
+        console.error('Auth check failed:', error);
+        localStorage.removeItem('authToken');
+        authToken = null;
+        showPage('login');
+        alert('Connection error', 'error');
+    }
+}
+        // Login form handler - UPDATED VERSION
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            console.log('Login form submitted');
+            
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!username || !password) {
+                alert('Please enter credentials', 'warning');
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Signing in...';
+            submitBtn.disabled = true;
+            
+            try {
+                // Test if backend is reachable first
+                console.log('Testing backend connection...');
+                const healthCheck = await fetch(`${API_URL}/health`);
+                if (!healthCheck.ok) {
+                    throw new Error('Backend server is not responding');
+                }
+                
+                // Create form data for login
+                const formData = new FormData();
+                formData.append('username', username);
+                formData.append('password', password);
+                
+                console.log('Sending login request to:', `${API_URL}/token`);
+                const response = await fetch(`${API_URL}/token`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                console.log('Login response status:', response.status);
+                const data = await response.json();
+                console.log('Login response data:', data);
+                
+                if (response.ok && data.access_token) {
+                    authToken = data.access_token;
+                    localStorage.setItem('authToken', authToken);
+                    
+                    // Show success message
+                    alert('Login successful! Redirecting...', 'success');
+                    
+                    // Clear form
+                    document.getElementById('loginForm').reset();
+                    
+                    // Wait a moment then check auth to get user info
+                    setTimeout(async () => {
+                        await checkAuth();
+                    }, 1500);
+                    
+                } else {
+                    throw new Error(data.detail || 'Invalid credentials');
+                }
+            } catch (error) {
+                console.error('Login error details:', error);
+                let errorMessage = error.message;
+                
+                // Check for common errors
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage = 'Cannot connect to server. Make sure backend is running at http://localhost:5000';
+                } else if (error.message.includes('NetworkError')) {
+                    errorMessage = 'Network error. Check your internet connection and CORS settings';
+                }
+                
+                alert(errorMessage, 'error', 4000);
+            } finally {
+                // Restore button state
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // SIMPLE TEST FUNCTION - Add this for debugging
+        async function testConnection() {
+            try {
+                console.log('Testing connection to:', API_URL);
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                console.log('Backend health:', data);
+                return { success: true, data };
+            } catch (error) {
+                console.error('Connection test failed:', error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        // Register form handler
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            const email = document.getElementById('regEmail').value.trim();
+            
+            if (username.length < 3) {
+                alert('Username must be at least 3 characters', 'warning');
+                return;
+            }
+            
+            if (password.length < 6) {
+                alert('Password must be at least 6 characters', 'warning');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                alert('Passwords do not match', 'error');
+                return;
+            }
+            
+            const userData = {
+                email: email,
+                username: username,
+                password: password,
+                full_name: document.getElementById('regFullName').value.trim() || null
+            };
+            
+            // Show loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Creating account...';
+            submitBtn.disabled = true;
+            
+            try {
+                const response = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.access_token) {
+                    authToken = data.access_token;
+                    localStorage.setItem('authToken', authToken);
+                    
+                    alert(`Account created! Redirecting...`, 'success');
+                    document.getElementById('registerForm').reset();
+                    
+                    // Wait then check auth
+                    setTimeout(async () => {
+                        await checkAuth();
+                    }, 1500);
+                    
+                } else {
+                    if (response.status === 422) {
+                        if (data.detail && Array.isArray(data.detail)) {
+                            alert(data.detail.map(err => err.msg).join(', '), 'error');
+                        } else {
+                            alert(data.detail || 'Invalid input', 'error');
+                        }
+                    } else {
+                        alert(data.detail || 'Username or email exists', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                alert('Connection error: ' + error.message, 'error');
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+    // Forgot password form handler - UPDATED
+    document.getElementById('forgotForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const email = document.getElementById('forgotEmail').value.trim();
+    
+    if (!email) {
+        alert('Please enter your email', 'warning');
+        return;
+    }
+    
+    // Show loading state
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Sending...';
+    submitBtn.disabled = true;
+    
+    try {
+        const response = await fetch(`${API_URL}/forgot-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: email })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Show success message
+            Swal.fire({
+                title: 'Reset Link Sent!',
+                html: `
+                    <p>If your email is registered, password reset instructions have been sent.</p>
+                    ${data.reset_token ? `
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin: 15px 0;">
+                        <strong>Development Token:</strong><br>
+                        <code style="color: #667eea; font-size: 0.9em; word-break: break-all;">${data.reset_token}</code>
+                        <p style="font-size: 0.8em; color: #718096; margin-top: 8px;">
+                            (In production, this would be sent via email)
+                        </p>
+                    </div>
+                    ` : ''}
+                `,
+                icon: 'info',
+                confirmButtonText: 'Got it!',
+                confirmButtonColor: '#667eea',
+                background: 'rgba(255, 255, 255, 0.98)',
+                backdrop: 'rgba(0,0,0,0.2)'
+            });
+            
+            // Pre-fill the reset token in reset page if available
+            if (data.reset_token) {
+                document.getElementById('resetToken').value = data.reset_token;
+            }
+            
+            // Clear form
+            document.getElementById('forgotForm').reset();
+            
+            // Navigate to reset page
+            setTimeout(() => showPage('reset'), 2000);
+            
+        } else {
+            alert(data.detail || 'Request failed', 'error');
+        }
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        alert('Network error: ' + error.message, 'error');
+    } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
+});
+
+// Reset password form handler - UPDATED
+document.getElementById('resetForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const token = document.getElementById('resetToken').value.trim();
+    const password = document.getElementById('resetPassword').value;
+    const confirmPassword = document.getElementById('resetConfirmPassword').value;
+    
+    if (!token) {
+        alert('Please enter the reset token', 'warning');
+        return;
+    }
+    
+    if (password.length < 8) {
+        alert('Password must be at least 8 characters', 'warning');
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        alert('Passwords do not match', 'error');
+        return;
+    }
+    
+    // Show loading state
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Resetting...';
+    submitBtn.disabled = true;
+    
+    try {
+        const response = await fetch(`${API_URL}/reset-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                token: token, 
+                new_password: password 
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            alert('Password reset successful!', 'success');
+            
+            Swal.fire({
+                text: 'Your password has been reset successfully.',
+                icon: 'success',
+                confirmButtonText: 'Go to Login',
+                confirmButtonColor: '#667eea',
+                background: 'rgba(255, 255, 255, 0.98)',
+                backdrop: 'rgba(0,0,0,0.2)'
+            }).then(() => {
+                // Clear form
+                document.getElementById('resetForm').reset();
+                
+                // Navigate to login page
+                showPage('login');
+            });
+            
+        } else {
+            alert(data.detail || 'Invalid or expired token', 'error');
+        }
+    } catch (error) {
+        console.error('Reset password error:', error);
+        alert('Network error: ' + error.message, 'error');
+    } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
+});
+
+        // Logout function
+        function logout() {
+            Swal.fire({ 
+                text: 'Are you sure you want to logout?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#667eea',
+                cancelButtonColor: '#c53030',
+                confirmButtonText: 'Yes',
+                cancelButtonText: 'Cancel',
+                background: 'rgba(255, 255, 255, 0.98)',
+                backdrop: 'rgba(0,0,0,0.2)'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.removeItem('authToken');
+                    authToken = null;
+                    currentUser = null;
+                    document.getElementById('dashboardPage').classList.add('hidden');
+                    document.getElementById('authPages').classList.remove('hidden');
+                    showPage('login');
+                    alert('Logged out successfully', 'info');
+                }
+            });
+        }
+
+        // Switch tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            event.currentTarget.classList.add('active');
+            
+            alert(`${tabName === 'single' ? 'Single' : 'Batch'} prediction mode`, 'info', 2000);
+        }
+
+        // Single prediction form handler - UPDATED (removed risk_score and rejection_reasons)
+        document.getElementById('singleForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!authToken) {
+                alert('Please login first', 'warning');
+                showPage('login');
+                return;
+            }
+            
+            const resultDiv = document.getElementById('singleResult');
+            resultDiv.style.display = 'none';
+            
+            const data = {
+                applicant_name: document.getElementById('name').value,
+                annual_income: parseFloat(document.getElementById('annual_income').value),
+                debt_to_income_ratio: parseFloat(document.getElementById('debt_to_income_ratio').value),
+                credit_score: parseInt(document.getElementById('credit_score').value),
+                loan_amount: parseFloat(document.getElementById('loan_amount').value),
+                interest_rate: parseFloat(document.getElementById('interest_rate').value),
+                gender: document.getElementById('gender').value,
+                marital_status: document.getElementById('marital_status').value,
+                education_level: document.getElementById('education_level').value,
+                employment_status: document.getElementById('employment_status').value,
+                loan_purpose: document.getElementById('loan_purpose').value,
+                grade_subgrade: document.getElementById('grade_subgrade').value
+            };
+
+            const name = document.getElementById('name').value;
+            
+            alert('Processing AI prediction...', 'info');
+
+            // Show loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = '🔄 In Processing...';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_URL}/predict`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    const predictionText = result.prediction === 1 ? 'Approved' : 'Rejected';
+                    const predictionClass = result.prediction === 1 ? 'success' : 'error';
+                    const confidence = (result.probability * 100).toFixed(2);
+                    
+                    resultDiv.innerHTML = `
+                        <h3 style="font-weight: 800; margin-bottom: 25px;">Prediction Result for ${name}</h3>
+                        <div style="text-align: center; padding: 25px; background: rgba(255,255,255,0.4); border-radius: 14px;">
+                            <p style="font-size: 28px; margin: 20px 0; font-weight: 800;">${predictionText}</p>
+                            <p style="font-size: 18px;"><strong>Confidence Level:</strong> <span style="font-size: 1.4em; color: #667eea; font-weight: 700;">${confidence}%</span></p>
+                        </div>
+                    `;
+                    resultDiv.className = `result ${predictionClass}`;
+                    resultDiv.style.display = 'block';
+                    
+                    alert(`Prediction: ${predictionText} (${confidence}% confidence)`, result.prediction === 1 ? 'success' : 'error');
+                } else {
+                    throw new Error(result.detail || 'Prediction failed');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="font-weight: 600;"><strong>Error:</strong> ${error.message}</p>`;
+                resultDiv.className = 'result error';
+                resultDiv.style.display = 'block';
+                alert(`Error: ${error.message}`, 'error');
+            } finally {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // File selection handler
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.type !== 'text/csv/excel' && !file.name.endsWith('.csv')) {
+                    alert('Please select a CSV file', 'error');
+                    return;
+                }
+                selectedFile = file;
+                document.getElementById('fileName').textContent = `📋 ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+                document.getElementById('uploadBtn').disabled = false;
+                alert('File ready: ' + file.name, 'success', 2000);
+            }
+        }
+
+        // Drop zone click handler
+        document.getElementById('dropZone').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+      // Download CSV template
+      function downloadTemplate1() {
+    const csvContent = `applicant_name,annual_income,debt_to_income_ratio,credit_score,loan_amount,interest_rate,gender,marital_status,education_level,employment_status,loan_purpose,grade_subgrade
+David Wilson,8500000,0.22,810,3000000,5.8,Male,Married,PhD,Employed,Home,A1
+Maria Garcia,3800000,0.52,590,1800000,14.2,Female,Married,High School,Employed,Medical,F2
+James Miller,9500000,0.18,790,4000000,4.9,Male,Single,Master's,Self-employed,Business,A2
+Sophia Davis,4200000,0.48,620,1200000,11.5,Female,Single,Bachelor's,Employed,Education,C1
+Michael Taylor,7200000,0.32,710,2500000,7.8,Male,Divorced,Bachelor's,Employed,Car,B2
+Emma Anderson,5500000,0.38,680,2000000,9.2,Female,Married,Bachelor's,Employed,Debt consolidation,C3
+Daniel Thomas,4800000,0.42,640,1500000,10.8,Male,Single,High School,Unemployed,Other,D1
+Olivia Martinez,6700000,0.28,730,2800000,6.5,Female,Single,Master's,Employed,Home,A2
+William Lee,8900000,0.20,800,3500000,5.2,Male,Married,PhD,Employed,Business,A1
+Ava Harris,5100000,0.35,670,2200000,8.5,Female,Divorced,Bachelor's,Self-employed,Medical,B2`;
+    
+    downloadCSV(csvContent, 'mixed_results_sample.csv');
+}
+
+function downloadTemplate2() {
+    const csvContent = `applicant_name,annual_income,debt_to_income_ratio,credit_score,loan_amount,interest_rate,gender,marital_status,education_level,employment_status,loan_purpose,grade_subgrade
+Chris Evans,2900000,0.65,520,1200000,18.5,Male,Single,High School,Unemployed,Car,F2
+Lisa Wong,3200000,0.58,540,1500000,16.8,Female,Divorced,High School,Employed,Debt consolidation,F2
+Kevin Patel,4100000,0.62,560,2000000,17.2,Male,Married,Bachelor's,Self-employed,Business,E4
+Rachel Green,2700000,0.70,510,1000000,19.5,Female,Single,High School,Student,Education,F5
+Mark Roberts,3500000,0.55,580,1800000,15.8,Male,Widowed,High School,Retired,Medical,D5
+Susan Kim,3800000,0.60,550,2200000,16.5,Female,Divorced,Bachelor's,Unemployed,Other,E3
+Brian Scott,3100000,0.68,530,1400000,18.2,Male,Single,High School,Employed,Car,F4
+Nancy White,3400000,0.57,570,1600000,15.5,Female,Married,High School,Self-employed,Debt consolidation,D4
+Paul Adams,3600000,0.63,540,1900000,17.8,Male,Divorced,Bachelor's,Employed,Business,E5
+Karen Young,3300000,0.59,560,1700000,16.2,Female,Single,High School,Unemployed,Medical,E4`;
+    
+    downloadCSV(csvContent, 'high_risk_applicants.csv');
+}
+
+function downloadTemplate3() {
+    const csvContent = `applicant_name,annual_income,debt_to_income_ratio,credit_score,loan_amount,interest_rate,gender,marital_status,education_level,employment_status,loan_purpose,grade_subgrade
+Steven King,12000000,0.15,850,5000000,4.2,Male,Married,PhD,Employed,Home,A1
+Amanda Clark,9500000,0.18,820,4000000,4.8,Female,Married,Master's,Employed,Business,A2
+Richard Baker,11000000,0.12,840,4500000,3.9,Male,Married,PhD,Self-employed,Home,A1
+Jessica Hall,8800000,0.20,800,3500000,5.5,Female,Single,Master's,Employed,Education,A2
+Thomas Wright,10500000,0.14,830,4200000,4.5,Male,Divorced,PhD,Employed,Business,A1
+Melissa Allen,9200000,0.19,810,3800000,5.2,Female,Married,Master's,Employed,Home,A2
+Charles Young,9800000,0.17,825,3900000,4.9,Male,Single,PhD,Employed,Education,A1
+Jennifer King,10100000,0.13,835,4100000,4.3,Female,Widowed,Master's,Retired,Home,A2
+George Hill,11500000,0.11,845,4800000,3.7,Male,Married,PhD,Employed,Business,A1
+Sandra Scott,9400000,0.16,815,3700000,5.0,Female,Married,Master's,Employed,Car,A3`;
+    
+    downloadCSV(csvContent, 'low_risk_applicants.csv');
+}
+
+function downloadTemplate4() {
+    const csvContent = `applicant_name,annual_income,debt_to_income_ratio,credit_score,loan_amount,interest_rate,gender,marital_status,education_level,employment_status,loan_purpose,grade_subgrade
+Robert Chen,6500000,0.40,710,3000000,7.5,Male,Married,Bachelor's,Self-employed,Business,B2
+Lisa Rodriguez,5200000,0.35,680,2000000,8.8,Female,Single,Bachelor's,Self-employed,Business,C1
+Michael Brown,7800000,0.28,750,3500000,6.2,Male,Divorced,Master's,Self-employed,Business,B1
+Sarah Johnson,4500000,0.42,660,1800000,9.5,Female,Married,Bachelor's,Self-employed,Business,C3
+David Kim,8300000,0.25,780,4000000,5.8,Male,Single,PhD,Self-employed,Business,A2
+Emily Wang,5800000,0.32,700,2500000,7.8,Female,Married,Master's,Self-employed,Business,B3
+James Smith,7100000,0.30,740,3200000,6.8,Male,Widowed,Bachelor's,Self-employed,Business,B2
+Maria Garcia,4900000,0.38,670,2200000,9.0,Female,Divorced,Bachelor's,Self-employed,Business,C2
+Thomas Lee,9000000,0.22,790,4500000,5.5,Male,Married,Master's,Self-employed,Business,A1
+Jessica Martinez,6200000,0.34,720,2800000,7.2,Female,Single,Bachelor's,Self-employed,Business,B3`;
+    
+    downloadCSV(csvContent, 'small_business_owners.csv');
+}
+
+function downloadTemplate5() {
+    const csvContent = `applicant_name,annual_income,debt_to_income_ratio,credit_score,loan_amount,interest_rate,gender,marital_status,education_level,employment_status,loan_purpose,grade_subgrade
+Alexander Grant,15000000,0.25,820,10000000,6.5,Male,Married,Master's,Employed,Home,A1
+Victoria Stone,12800000,0.28,805,8500000,6.8,Female,Divorced,Master's,Self-employed,Home,A2
+Benjamin Ford,17500000,0.22,835,12000000,6.2,Male,Married,PhD,Employed,Home,A1
+Catherine Reed,14200000,0.26,815,9500000,6.6,Female,Single,Master's,Employed,Home,A3
+Nathan Brooks,16200000,0.24,830,11000000,6.3,Male,Widowed,PhD,Retired,Home,A1
+Isabella Hayes,13500000,0.27,810,9000000,6.7,Female,Married,Master's,Self-employed,Home,A2
+Christopher Wells,18800000,0.20,845,13500000,5.9,Male,Married,PhD,Employed,Home,A1
+Gabriella Fox,15500000,0.23,825,10500000,6.4,Female,Divorced,Master's,Employed,Home,A2
+Dominic Shaw,16800000,0.21,840,11500000,6.1,Male,Single,PhD,Employed,Home,A1
+Sophia Rivers,14800000,0.25,820,9800000,6.5,Female,Married,Master's,Self-employed,Home,A3`;
+    
+    downloadCSV(csvContent, 'real_estate_investors.csv');
+}
+
+// help to download templates you need above
+function downloadCSV(csvContent, filename) {
+    const blob = new Blob([csvContent], { type: 'text/csv/excel' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    
+    alert(`${filename} downloaded`, 'success');
+}
+
+
+// Upload batch file - UPDATED VERSION (removed risk_score)
+async function uploadFile() {
+    if (!authToken) {
+        alert('Please login first', 'warning');
+        showPage('login');
+        return;
+    }
+    
+    if (!selectedFile) {
+        alert('Please select a file first', 'warning');
+        return;
+    }
+
+    const resultDiv = document.getElementById('batchResult');
+    resultDiv.style.display = 'none';
+    
+    alert('Processing batch file...', 'info');
+
+    // Show loading state
+    const uploadBtn = document.getElementById('uploadBtn');
+    const originalText = uploadBtn.textContent;
+    uploadBtn.textContent = 'Loading...';
+    uploadBtn.disabled = true;
+
+    try {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+
+        const response = await fetch(`${API_URL}/predict/batch`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: formData
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Upload failed');
+        }
+
+        const result = await response.json();
+        
+        // Display results
+        let table = `
+            <h3 style="font-weight: 800; margin-bottom: 20px;">✔️ Batch Processing Complete</h3>
+            <div style="padding: 20px; background: rgba(255,255,255,0.6); border-radius: 14px; margin-bottom: 25px;">
+                <p style="font-size: 18px; font-weight: 700;">
+                    <span style="color: #667eea;">Total Applications:</span> ${result.total_applications} | 
+                    <span style="color: #48bb78;">Approved:</span> ${result.approved_applications} | 
+                    <span style="color: #f5576c;">Rejected:</span> ${result.rejected_applications} |
+                    <span style="color: #667eea;">Approval Rate:</span> ${result.approval_rate}%
+                </p>
+                <p style="color: #718096; margin-top: 10px;">
+                    Processing time: ${result.processing_time_seconds} seconds
+                </p>
+            </div>
+            <div style="overflow-x: auto; margin-top: 20px; border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+                        <tr>
+                            <th style="padding: 15px; border: none; text-align: left;">Row</th>
+                            <th style="padding: 15px; border: none; text-align: left;">Applicant Name</th>
+                            <th style="padding: 15px; border: none; text-align: left;">Status</th>
+                            <th style="padding: 15px; border: none; text-align: left;">Probability</th>
+                            <th style="padding: 15px; border: none; text-align: left;">Credit Score</th>
+                            <th style="padding: 15px; border: none; text-align: left;">DTI(Debt-to-Income)Ratio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        result.results.forEach((row, i) => {
+            table += `<tr style="background-color: ${i % 2 ? '#f8f9fa' : 'white'}; transition: all 0.2s;">`;
+            table += `<td style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0;">${row.row_number || i + 1}</td>`;
+            table += `<td style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0;">${row.applicant_name || 'N/A'}</td>`;
+            
+            if (row.error) {
+                table += `<td colspan="4" style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0; color: #f5576c;">
+                    <strong>Error:</strong> ${row.error}
+                </td>`;
+            } else {
+                const status = row.prediction === 1 ? 
+                    '<span style="color: #48bb78; font-weight: 700;">Approved</span>' : 
+                    '<span style="color: #f5576c; font-weight: 700;">Rejected</span>';
+                
+                const probability = row.probability ? 
+                    `<span style="font-weight: 600;">${(row.probability * 100).toFixed(2)}%</span>` : 
+                    'N/A';
+                
+                const creditScore = row.credit_score || 'N/A';
+                const dti = row.debt_to_income_ratio ? row.debt_to_income_ratio.toFixed(3) : 'N/A';
+                
+                table += `<td style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0;">${status}</td>`;
+                table += `<td style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0;">${probability}</td>`;
+                table += `<td style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0;">${creditScore}</td>`;
+                table += `<td style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0;">${dti}</td>`;
+            }
+            
+            table += '</tr>';
+        });
+        
+        table += '</tbody></table></div>';
+        
+        resultDiv.innerHTML = table;
+        resultDiv.className = 'result success';
+        resultDiv.style.display = 'block';
+        
+        alert(`✔️ Processed ${result.total_applications} applications. ${result.approved_applications} approved!`, 'success', 4000);
+    } catch (error) {
+        resultDiv.innerHTML = `<p style="font-weight: 600;"><strong>Error:</strong> ${error.message}</p>`;
+        resultDiv.className = 'result error';
+        resultDiv.style.display = 'block';
+        alert(`Processing failed: ${error.message}`, 'error');
+    } finally {
+        uploadBtn.textContent = originalText;
+        uploadBtn.disabled = false;
+    }
+}
+
+        // Drag and drop functionality
+        const dropZone = document.getElementById('dropZone');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => {
+                dropZone.style.borderColor = '#667eea';
+                dropZone.style.transform = 'scale(1.02)';
+            }, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => {
+                dropZone.style.borderColor = 'rgba(102, 126, 234, 0.5)';
+                dropZone.style.transform = 'scale(1)';
+            }, false);
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                document.getElementById('fileInput').files = files;
+                handleFileSelect({ target: { files: files } });
+            }
+        }, false);
+
+
+        // history-data 
+
+        // Load prediction history from backend
+async function loadHistory() {
+    if (!authToken) {
+        alert('Please login first', 'warning');
+        return;
+    }
+    
+    const historyContent = document.getElementById('historyContent');
+    
+    // Show loading state
+    historyContent.innerHTML = `
+        <div style="text-align: center; padding: 3rem;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: #667eea;"></i>
+            <p style="margin-top: 1rem; color: #718096;">Loading prediction history...</p>
+        </div>
+    `;
+    
+    try {
+        // Fetch both single and batch predictions
+        const [predictionsResponse, batchResponse] = await Promise.all([
+            fetch(`${API_URL}/history/predictions?limit=50`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            }),
+            fetch(`${API_URL}/history/batch?limit=20`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            })
+        ]);
+        
+        if (!predictionsResponse.ok) {
+            throw new Error('Failed to load prediction history');
+        }
+        
+        const predictionsData = await predictionsResponse.json();
+        const batchData = batchResponse.ok ? await batchResponse.json() : { batches: [] };
+        
+        const predictions = predictionsData.predictions || [];
+        const batches = batchData.batches || [];
+        
+        if (predictions.length === 0 && batches.length === 0) {
+            historyContent.innerHTML = `
+                <div style="text-align: center; padding: 3rem;">
+                    <i class="fas fa-history" style="font-size: 4rem; color: #e2e8f0; margin-bottom: 1.5rem;"></i>
+                    <p style="color: #718096; font-size: 1.1rem; font-weight: 600;">No prediction history yet</p>
+                    <p class="help-text">Your predictions will appear here after you make them</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Create tabs for single and batch history
+        let html = `
+            <div style="margin-bottom: 25px;">
+                <div class="tabs" style="margin-bottom: 0;">
+                    <div class="tab active" onclick="switchHistoryView('single')" style="flex: none; min-width: 200px;">
+                        <i class="fas fa-user"></i> Single Predictions (${predictions.length})
+                    </div>
+                    <div class="tab" onclick="switchHistoryView('batch')" style="flex: none; min-width: 200px;">
+                        <i class="fas fa-users"></i> Batch History (${batches.length})
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Single Predictions View -->
+            <div id="singleHistoryView" class="history-view">
+        `;
+        
+        if (predictions.length > 0) {
+            html += `
+                <div style="margin-bottom: 20px; padding: 20px; background: rgba(102, 126, 234, 0.05); border-radius: 14px;">
+                    <h3 style="font-weight: 700; color: #2d3748; margin-bottom: 10px;">
+                        <i class="fas fa-chart-pie"></i> Single Predictions Summary
+                    </h3>
+                    <p style="color: #718096; font-size: 1rem;">
+                        Total: <strong>${predictions.length}</strong> | 
+                        Approved: <strong style="color: #48bb78;">${predictions.filter(p => p.prediction === 1).length}</strong> | 
+                        Rejected: <strong style="color: #f5576c;">${predictions.filter(p => p.prediction === 0).length}</strong>
+                    </p>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-calendar"></i> Date</th>
+                                <th><i class="fas fa-user"></i> Applicant</th>
+                                <th><i class="fas fa-check-circle"></i> Status</th>
+                                <th><i class="fas fa-percentage"></i> Probability</th>
+                                <th><i class="fas fa-money-bill-wave"></i> Loan Amount</th>
+                                <th><i class="fas fa-chart-bar"></i> Credit Score</th>
+                                <th><i class="fas fa-dollar-sign"></i> Annual Income</th>
+                                <th><i class="fas fa-balance-scale"></i> DTI Ratio</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            predictions.forEach((pred, i) => {
+                const date = pred.created_at ? new Date(pred.created_at).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }) : 'N/A';
+                
+                const status = pred.prediction === 1 ? 
+                    '<span style="color: #48bb78; font-weight: 700; padding: 4px 12px; background: rgba(72, 187, 120, 0.1); border-radius: 20px;">Approved</span>' : 
+                    '<span style="color: #f5576c; font-weight: 700; padding: 4px 12px; background: rgba(245, 101, 101, 0.1); border-radius: 20px;">Rejected</span>';
+                
+                const probability = pred.probability ? 
+                    `<span style="font-weight: 600; color: ${pred.prediction === 1 ? '#48bb78' : '#f5576c'};">${(pred.probability * 100).toFixed(2)}%</span>` : 
+                    'N/A';
+                
+                const loanAmount = pred.loan_amount ? 
+                    `RWF ${parseFloat(pred.loan_amount).toLocaleString('en-US', {maximumFractionDigits: 0})}` : 
+                    'N/A';
+                
+                const income = pred.annual_income ? 
+                    `RWF ${parseFloat(pred.annual_income).toLocaleString('en-US', {maximumFractionDigits: 0})}` : 
+                    'N/A';
+                
+                const creditScore = pred.credit_score || 'N/A';
+                const dti = pred.debt_to_income_ratio ? parseFloat(pred.debt_to_income_ratio).toFixed(2) : 'N/A';
+                
+                html += `
+                    <tr style="background-color: ${i % 2 ? '#f8f9fa' : 'white'};">
+                        <td style="font-size: 0.9em;">${date}</td>
+                        <td style="font-weight: 600;">${pred.applicant_name || 'N/A'}</td>
+                        <td>${status}</td>
+                        <td>${probability}</td>
+                        <td style="font-weight: 500;">${loanAmount}</td>
+                        <td style="font-weight: 500;">${creditScore}</td>
+                        <td style="font-weight: 500;">${income}</td>
+                        <td style="font-weight: 500;">${dti}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        } else {
+            html += `
+                <p style="text-align: center; color: #718096; padding: 2rem;">No single predictions yet</p>
+            `;
+        }
+        
+        html += `</div>`; // Close single history view
+        
+        // Batch History View
+        html += `
+            <div id="batchHistoryView" class="history-view hidden">
+        `;
+        
+        if (batches.length > 0) {
+            html += `
+                <div style="margin-bottom: 20px; padding: 20px; background: rgba(118, 75, 162, 0.05); border-radius: 14px;">
+                    <h3 style="font-weight: 700; color: #2d3748; margin-bottom: 10px;">
+                        <i class="fas fa-file-csv"></i> Batch Processing Summary
+                    </h3>
+                    <p style="color: #718096; font-size: 1rem;">
+                        Total Batches: <strong>${batches.length}</strong> | 
+                        Total Applications: <strong>${batches.reduce((sum, b) => sum + b.total_applications, 0)}</strong>
+                    </p>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-calendar"></i> Date</th>
+                                <th><i class="fas fa-file"></i> Filename</th>
+                                <th><i class="fas fa-list-ol"></i> Total Apps</th>
+                                <th><i class="fas fa-check"></i> Approved</th>
+                                <th><i class="fas fa-times"></i> Rejected</th>
+                                <th><i class="fas fa-percentage"></i> Approval Rate</th>
+                                <th><i class="fas fa-clock"></i> Process Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            batches.forEach((batch, i) => {
+                const date = batch.processed_at ? new Date(batch.processed_at).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }) : 'N/A';
+                
+                const approvalRate = batch.approval_rate ? 
+                    `<span style="font-weight: 600; color: ${batch.approval_rate > 70 ? '#48bb78' : batch.approval_rate > 40 ? '#ed8936' : '#f5576c'};">
+                        ${parseFloat(batch.approval_rate).toFixed(2)}%
+                    </span>` : 
+                    'N/A';
+                
+                const processTime = batch.processing_time_seconds ? 
+                    `${parseFloat(batch.processing_time_seconds).toFixed(2)}s` : 
+                    'N/A';
+                
+                html += `
+                    <tr style="background-color: ${i % 2 ? '#f8f9fa' : 'white'};">
+                        <td style="font-size: 0.9em;">${date}</td>
+                        <td style="font-weight: 600;">
+                            <i class="fas fa-file-csv" style="color: #667eea;"></i> 
+                            ${batch.file_name || 'N/A'}
+                        </td>
+                        <td style="text-align: center; font-weight: 600;">${batch.total_applications || 0}</td>
+                        <td style="text-align: center; color: #48bb78; font-weight: 600;">${batch.approved_applications || 0}</td>
+                        <td style="text-align: center; color: #f5576c; font-weight: 600;">${batch.rejected_applications || 0}</td>
+                        <td style="text-align: center;">${approvalRate}</td>
+                        <td style="text-align: center; font-weight: 500;">${processTime}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        } else {
+            html += `
+                <p style="text-align: center; color: #718096; padding: 2rem;">No batch predictions yet</p>
+            `;
+        }
+        
+        html += `</div>`; // Close batch history view
+        
+        historyContent.innerHTML = html;
+        
+    } catch (error) {
+        console.error('Error loading history:', error);
+        historyContent.innerHTML = `
+            <div style="text-align: center; padding: 3rem;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #f5576c; margin-bottom: 1rem;"></i>
+                <p style="color: #718096; font-size: 1.1rem; font-weight: 600;">Failed to load history</p>
+                <p class="help-text">${error.message}</p>
+                <button onclick="loadHistory()" class="btn" style="margin-top: 1rem; width: auto; padding: 0.75rem 1.5rem;">
+                    <i class="fas fa-redo"></i> Retry
+                </button>
+            </div>
+        `;
+        alert('Failed to load history', 'error');
+    }
+}
+
+// Switch between single and batch history views
+function switchHistoryView(view) {
+    const singleView = document.getElementById('singleHistoryView');
+    const batchView = document.getElementById('batchHistoryView');
+    const tabs = document.querySelectorAll('#historyContent .tabs .tab');
+    
+    if (view === 'single') {
+        singleView.classList.remove('hidden');
+        batchView.classList.add('hidden');
+        tabs[0].classList.add('active');
+        tabs[1].classList.remove('active');
+    } else {
+        singleView.classList.add('hidden');
+        batchView.classList.remove('hidden');
+        tabs[0].classList.remove('active');
+        tabs[1].classList.add('active');
+    }
+}
+
+// Update the main switchTab function to load history when history tab is clicked
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    document.querySelectorAll('.dashboard-content > .tabs .tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    document.getElementById(`${tabName}-tab`).classList.add('active');
+    event.currentTarget.classList.add('active');
+    
+    // Load history when history tab is selected
+    if (tabName === 'history') {
+        loadHistory();
+    }
+    
+    const tabLabel = tabName === 'single' ? 'Single Prediction' : 
+                     tabName === 'batch' ? 'Batch Prediction' : 
+                     'History';
+    alert(`${tabLabel} view`, 'info', 2000);
+}
+
+     
+
+    </script>
+
+</body>
+</html>
