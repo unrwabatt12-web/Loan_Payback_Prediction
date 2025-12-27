@@ -10,8 +10,8 @@ This project is a Machine Learning–based application designed to predict wheth
 2. Flask
 3. Scikit-learn
 4. Pandas
-5. HTML, CSS, JavaScript
-6. GitHub
+5. mysql
+6. HTML, CSS, JavaScript
 
 # Project Structure
 backend/        → Flask API and ML model
@@ -19,7 +19,7 @@ frontend/       → Web user interface
 dataset/        → Training dataset
 
 
-How to Run the Project
+# How to Run the Project
 1. Install Dependencies
 pip install -r backend/requirements.txt
 
@@ -28,37 +28,16 @@ cd backend
 python app.py
 
 3. Run Frontend
-
 Open:
+frontend/index.html in a web browser.
 
-frontend/index.html
+# Features
+-Loan payback prediction
+-Trained ML model with scaler
+-RESTful Flask API
+-Web-based frontend interface
 
-
-in a web browser.
-
-Features
-
-Loan payback prediction
-
-Trained ML model with scaler
-
-RESTful Flask API
-
-Web-based frontend interface
-
-Prediction logging with timestamps
-
-Prediction Logging
-
+# Prediction Logging
 All predictions are automatically stored in:
-
 backend/logs/predictions.csv
 
-
-Each record contains:
-
-Timestamp
-
-Input data
-
-Prediction result
