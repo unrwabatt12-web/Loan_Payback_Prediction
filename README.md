@@ -37,7 +37,3 @@ frontend/index.html in a web browser.
 -RESTful Flask API
 -Web-based frontend interface
 
-# Prediction Logging
-All predictions are automatically stored in:
-backend/logs/predictions.csv
-
